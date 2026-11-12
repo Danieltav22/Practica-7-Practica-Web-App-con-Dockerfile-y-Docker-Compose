@@ -1,0 +1,34 @@
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:8081:80"
+    volumes:
+      - ./src:/var/www/html:ro
+    environment:
+      DB_HOST: db
+      DB_NAME: hola_mundo
+      DB_USER: usuario_app
+      DB_PASSWORD: clave_demo_app
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: clave_demo_root
+      MYSQL_DATABASE: hola_mundo
+      MYSQL_USER: usuario_app
+      MYSQL_PASSWORD: clave_demo_app
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$${MYSQL_PASSWORD}\" mysql --host=127.0.0.1 --user=\"$${MYSQL_USER}\" --database=\"$${MYSQL_DATABASE}\" --execute='SELECT 1' --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+volumes:
+  mysql_data:
